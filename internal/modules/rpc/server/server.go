@@ -7,10 +7,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ouqiang/gocron/internal/modules/rpc/auth"
-	pb "github.com/ouqiang/gocron/internal/modules/rpc/proto"
-	"github.com/ouqiang/gocron/internal/modules/utils"
 	log "github.com/sirupsen/logrus"
+	"github.com/thriee/gocron/internal/modules/rpc/auth"
+	pb "github.com/thriee/gocron/internal/modules/rpc/proto"
+	"github.com/thriee/gocron/internal/modules/utils"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

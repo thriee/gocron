@@ -11,13 +11,13 @@ import (
 	"github.com/ouqiang/goutil"
 
 	"github.com/jakecoffman/cron"
-	"github.com/ouqiang/gocron/internal/models"
-	"github.com/ouqiang/gocron/internal/modules/app"
-	"github.com/ouqiang/gocron/internal/modules/httpclient"
-	"github.com/ouqiang/gocron/internal/modules/logger"
-	"github.com/ouqiang/gocron/internal/modules/notify"
-	rpcClient "github.com/ouqiang/gocron/internal/modules/rpc/client"
-	pb "github.com/ouqiang/gocron/internal/modules/rpc/proto"
+	"github.com/thriee/gocron/internal/models"
+	"github.com/thriee/gocron/internal/modules/app"
+	"github.com/thriee/gocron/internal/modules/httpclient"
+	"github.com/thriee/gocron/internal/modules/logger"
+	"github.com/thriee/gocron/internal/modules/notify"
+	rpcClient "github.com/thriee/gocron/internal/modules/rpc/client"
+	pb "github.com/thriee/gocron/internal/modules/rpc/proto"
 )
 
 var (
@@ -456,7 +456,7 @@ func SendNotification(taskModel models.Task, taskResult TaskResult) {
 		"output":           taskResult.Result,
 		"status":           statusName,
 		"task_id":          taskModel.Id,
-		"remark":  			taskModel.Remark,
+		"remark":           taskModel.Remark,
 	}
 	notify.Push(msg)
 }

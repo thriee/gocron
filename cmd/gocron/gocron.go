@@ -10,22 +10,23 @@ import (
 
 	macaron "gopkg.in/macaron.v1"
 
-	"github.com/ouqiang/gocron/internal/models"
-	"github.com/ouqiang/gocron/internal/modules/app"
-	"github.com/ouqiang/gocron/internal/modules/logger"
-	"github.com/ouqiang/gocron/internal/modules/setting"
-	"github.com/ouqiang/gocron/internal/routers"
-	"github.com/ouqiang/gocron/internal/service"
 	"github.com/ouqiang/goutil"
+	"github.com/thriee/gocron/internal/models"
+	"github.com/thriee/gocron/internal/modules/app"
+	"github.com/thriee/gocron/internal/modules/logger"
+	"github.com/thriee/gocron/internal/modules/setting"
+	"github.com/thriee/gocron/internal/routers"
+	"github.com/thriee/gocron/internal/service"
 	"github.com/urfave/cli"
 )
 
 var (
-	AppVersion           = "1.5"
-	BuildDate, GitCommit string
+	AppVersion = "1.5"
+	GitCommit  string
+	BuildDate  string
 )
 
-// web服务器默认端口
+// DefaultPort web服务器默认端口
 const DefaultPort = 5920
 
 func main() {

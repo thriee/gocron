@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ouqiang/gocron/internal/modules/logger"
-	"github.com/ouqiang/gocron/internal/modules/setting"
-	"github.com/ouqiang/gocron/internal/modules/utils"
 	"github.com/ouqiang/goutil"
+	"github.com/thriee/gocron/internal/modules/logger"
+	"github.com/thriee/gocron/internal/modules/setting"
+	"github.com/thriee/gocron/internal/modules/utils"
 )
 
 var (

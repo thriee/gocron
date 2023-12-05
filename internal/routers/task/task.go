@@ -8,11 +8,11 @@ import (
 
 	"github.com/go-macaron/binding"
 	"github.com/jakecoffman/cron"
-	"github.com/ouqiang/gocron/internal/models"
-	"github.com/ouqiang/gocron/internal/modules/logger"
-	"github.com/ouqiang/gocron/internal/modules/utils"
-	"github.com/ouqiang/gocron/internal/routers/base"
-	"github.com/ouqiang/gocron/internal/service"
+	"github.com/thriee/gocron/internal/models"
+	"github.com/thriee/gocron/internal/modules/logger"
+	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/routers/base"
+	"github.com/thriee/gocron/internal/service"
 	"gopkg.in/macaron.v1"
 )
 

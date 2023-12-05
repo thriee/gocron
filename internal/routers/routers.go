@@ -11,20 +11,20 @@ import (
 	"github.com/go-macaron/binding"
 	"github.com/go-macaron/gzip"
 	"github.com/go-macaron/toolbox"
-	"github.com/ouqiang/gocron/internal/modules/app"
-	"github.com/ouqiang/gocron/internal/modules/logger"
-	"github.com/ouqiang/gocron/internal/modules/utils"
-	"github.com/ouqiang/gocron/internal/routers/host"
-	"github.com/ouqiang/gocron/internal/routers/install"
-	"github.com/ouqiang/gocron/internal/routers/loginlog"
-	"github.com/ouqiang/gocron/internal/routers/manage"
-	"github.com/ouqiang/gocron/internal/routers/task"
-	"github.com/ouqiang/gocron/internal/routers/tasklog"
-	"github.com/ouqiang/gocron/internal/routers/user"
 	"github.com/rakyll/statik/fs"
+	"github.com/thriee/gocron/internal/modules/app"
+	"github.com/thriee/gocron/internal/modules/logger"
+	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/routers/host"
+	"github.com/thriee/gocron/internal/routers/install"
+	"github.com/thriee/gocron/internal/routers/loginlog"
+	"github.com/thriee/gocron/internal/routers/manage"
+	"github.com/thriee/gocron/internal/routers/task"
+	"github.com/thriee/gocron/internal/routers/tasklog"
+	"github.com/thriee/gocron/internal/routers/user"
 	"gopkg.in/macaron.v1"
 
-	_ "github.com/ouqiang/gocron/internal/statik"
+	_ "github.com/thriee/gocron/internal/statik"
 )
 
 const (
@@ -146,7 +146,7 @@ func Register(m *macaron.Macaron) {
 	})
 }
 
-// 中间件注册
+// RegisterMiddleware 中间件注册
 func RegisterMiddleware(m *macaron.Macaron) {
 	m.Use(macaron.Logger())
 	m.Use(macaron.Recovery())
