@@ -5,15 +5,16 @@ import (
 	"strings"
 	"time"
 
-	macaron "gopkg.in/macaron.v1"
+	"gopkg.in/macaron.v1"
+	"xorm.io/xorm/log"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/go-xorm/core"
-	"github.com/go-xorm/xorm"
 	_ "github.com/lib/pq"
 	"github.com/thriee/gocron/internal/modules/app"
 	"github.com/thriee/gocron/internal/modules/logger"
 	"github.com/thriee/gocron/internal/modules/setting"
+	"xorm.io/core"
+	"xorm.io/xorm"
 )
 
 type Status int8
@@ -70,7 +71,7 @@ func (model *BaseModel) pageLimitOffset() int {
 	return (model.Page - 1) * model.PageSize
 }
 
-// 创建Db
+// CreateDb 创建Db
 func CreateDb() *xorm.Engine {
 	dsn := getDbEngineDSN(app.Setting)
 	engine, err := xorm.NewEngine(app.Setting.Db.Engine, dsn)
@@ -90,7 +91,7 @@ func CreateDb() *xorm.Engine {
 	// 本地环境开启日志
 	if macaron.Env == macaron.DEV {
 		engine.ShowSQL(true)
-		engine.Logger().SetLevel(core.LOG_DEBUG)
+		engine.Logger().SetLevel(log.LOG_DEBUG)
 	}
 
 	go keepDbAlived(engine)
@@ -98,7 +99,7 @@ func CreateDb() *xorm.Engine {
 	return engine
 }
 
-// 创建临时数据库连接
+// CreateTmpDb 创建临时数据库连接
 func CreateTmpDb(setting *setting.Setting) (*xorm.Engine, error) {
 	dsn := getDbEngineDSN(setting)
 

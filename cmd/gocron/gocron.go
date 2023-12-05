@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	macaron "gopkg.in/macaron.v1"
+	"gopkg.in/macaron.v1"
 
 	"github.com/ouqiang/goutil"
 	"github.com/thriee/gocron/internal/models"

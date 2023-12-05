@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-xorm/xorm"
+	"xorm.io/xorm"
 )
 
 type TaskProtocol int8
@@ -36,7 +36,7 @@ const (
 	TaskHttpMethodPost TaskHTTPMethod = 2
 )
 
-// 任务
+// Task 任务
 type Task struct {
 	Id               int                  `json:"id" xorm:"int pk autoincr"`
 	Name             string               `json:"name" xorm:"varchar(32) notnull"`                            // 任务名称
@@ -69,7 +69,7 @@ func taskHostTableName() []string {
 	return []string{TablePrefix + "task_host", "th"}
 }
 
-// 新增
+// Create 新增
 func (task *Task) Create() (insertId int, err error) {
 	_, err = Db.Insert(task)
 	if err == nil {
@@ -87,27 +87,27 @@ func (task *Task) UpdateBean(id int) (int64, error) {
 		Update(task)
 }
 
-// 更新
+// Update 更新
 func (task *Task) Update(id int, data CommonMap) (int64, error) {
 	return Db.Table(task).ID(id).Update(data)
 }
 
-// 删除
+// Delete 删除
 func (task *Task) Delete(id int) (int64, error) {
-	return Db.Id(id).Delete(task)
+	return Db.ID(id).Delete(task)
 }
 
-// 禁用
+// Disable 禁用
 func (task *Task) Disable(id int) (int64, error) {
 	return task.Update(id, CommonMap{"status": Disabled})
 }
 
-// 激活
+// Enable 激活
 func (task *Task) Enable(id int) (int64, error) {
 	return task.Update(id, CommonMap{"status": Enabled})
 }
 
-// 获取所有激活任务
+// ActiveList 获取所有激活任务
 func (task *Task) ActiveList(page, pageSize int) ([]Task, error) {
 	params := CommonMap{"Page": page, "PageSize": pageSize}
 	task.parsePageAndPageSize(params)
@@ -122,7 +122,7 @@ func (task *Task) ActiveList(page, pageSize int) ([]Task, error) {
 	return task.setHostsForTasks(list)
 }
 
-// 获取某个主机下的所有激活任务
+// ActiveListByHostId 获取某个主机下的所有激活任务
 func (task *Task) ActiveListByHostId(hostId int16) ([]Task, error) {
 	taskHostModel := new(TaskHost)
 	taskIds, err := taskHostModel.GetTaskIdsByHostId(hostId)
@@ -157,7 +157,7 @@ func (task *Task) setHostsForTasks(tasks []Task) ([]Task, error) {
 	return tasks, err
 }
 
-// 判断任务名称是否存在
+// NameExist 判断任务名称是否存在
 func (task *Task) NameExist(name string, id int) (bool, error) {
 	if id > 0 {
 		count, err := Db.Where("name = ? AND status = ? AND id != ?", name, Enabled, id).Count(task)
@@ -208,7 +208,7 @@ func (task *Task) List(params CommonMap) ([]Task, error) {
 	return task.setHostsForTasks(list)
 }
 
-// 获取依赖任务列表
+// GetDependencyTaskList 获取依赖任务列表
 func (task *Task) GetDependencyTaskList(ids string) ([]Task, error) {
 	list := make([]Task, 0)
 	if ids == "" {
