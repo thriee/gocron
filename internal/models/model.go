@@ -10,9 +10,9 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
-	"github.com/thriee/gocron/internal/modules/app"
-	"github.com/thriee/gocron/internal/modules/logger"
-	"github.com/thriee/gocron/internal/modules/setting"
+	"github.com/thriee/gocron/internal/pkg/app"
+	"github.com/thriee/gocron/internal/pkg/logger"
+	"github.com/thriee/gocron/internal/pkg/setting"
 	"xorm.io/core"
 	"xorm.io/xorm"
 )

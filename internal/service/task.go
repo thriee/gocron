@@ -12,12 +12,12 @@ import (
 
 	"github.com/jakecoffman/cron"
 	"github.com/thriee/gocron/internal/models"
-	"github.com/thriee/gocron/internal/modules/app"
-	"github.com/thriee/gocron/internal/modules/httpclient"
-	"github.com/thriee/gocron/internal/modules/logger"
-	"github.com/thriee/gocron/internal/modules/notify"
-	rpcClient "github.com/thriee/gocron/internal/modules/rpc/client"
-	pb "github.com/thriee/gocron/internal/modules/rpc/proto"
+	"github.com/thriee/gocron/internal/pkg/app"
+	"github.com/thriee/gocron/internal/pkg/httpclient"
+	"github.com/thriee/gocron/internal/pkg/logger"
+	"github.com/thriee/gocron/internal/pkg/notify"
+	rpcClient "github.com/thriee/gocron/internal/pkg/rpc/client"
+	pb "github.com/thriee/gocron/internal/pkg/rpc/proto"
 )
 
 var (

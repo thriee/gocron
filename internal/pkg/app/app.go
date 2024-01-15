@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/ouqiang/goutil"
-	"github.com/thriee/gocron/internal/modules/logger"
-	"github.com/thriee/gocron/internal/modules/setting"
-	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/pkg/logger"
+	"github.com/thriee/gocron/internal/pkg/setting"
+	"github.com/thriee/gocron/internal/pkg/utils"
 )
 
 var (

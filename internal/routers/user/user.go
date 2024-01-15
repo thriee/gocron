@@ -7,9 +7,9 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/thriee/gocron/internal/models"
-	"github.com/thriee/gocron/internal/modules/app"
-	"github.com/thriee/gocron/internal/modules/logger"
-	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/pkg/app"
+	"github.com/thriee/gocron/internal/pkg/logger"
+	"github.com/thriee/gocron/internal/pkg/utils"
 	"github.com/thriee/gocron/internal/routers/base"
 	"gopkg.in/macaron.v1"
 )

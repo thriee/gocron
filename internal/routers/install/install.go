@@ -11,9 +11,9 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/thriee/gocron/internal/models"
-	"github.com/thriee/gocron/internal/modules/app"
-	"github.com/thriee/gocron/internal/modules/setting"
-	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/pkg/app"
+	"github.com/thriee/gocron/internal/pkg/setting"
+	"github.com/thriee/gocron/internal/pkg/utils"
 	"github.com/thriee/gocron/internal/service"
 )
 

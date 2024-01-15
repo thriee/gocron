@@ -9,9 +9,9 @@ import (
 
 	"github.com/ouqiang/goutil"
 	log "github.com/sirupsen/logrus"
-	"github.com/thriee/gocron/internal/modules/rpc/auth"
-	"github.com/thriee/gocron/internal/modules/rpc/server"
-	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/pkg/rpc/auth"
+	"github.com/thriee/gocron/internal/pkg/rpc/server"
+	"github.com/thriee/gocron/internal/pkg/utils"
 )
 
 var (

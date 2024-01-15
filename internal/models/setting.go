@@ -55,7 +55,7 @@ const (
 	WebhookUrlKey      = "url"
 )
 
-// 初始化基本字段 邮件、slack等
+// InitBasicField 初始化基本字段 邮件、slack等
 func (setting *Setting) InitBasicField() {
 	setting.Code = SlackCode
 	setting.Key = SlackUrlKey
@@ -145,7 +145,7 @@ func (setting *Setting) UpdateSlack(url, template string) error {
 	return nil
 }
 
-// 创建slack渠道
+// CreateChannel 创建slack渠道
 func (setting *Setting) CreateChannel(channel string) (int64, error) {
 	setting.Code = SlackCode
 	setting.Key = SlackChannelKey
@@ -164,7 +164,7 @@ func (setting *Setting) IsChannelExist(channel string) bool {
 	return count > 0
 }
 
-// 删除slack渠道
+// RemoveChannel 删除slack渠道
 func (setting *Setting) RemoveChannel(id int) (int64, error) {
 	setting.Code = SlackCode
 	setting.Key = SlackChannelKey
@@ -189,7 +189,7 @@ type MailUser struct {
 	Email    string `json:"email"`
 }
 
-// region 邮件配置
+// Mail region 邮件配置
 func (setting *Setting) Mail() (Mail, error) {
 	list := make([]Setting, 0)
 	err := Db.Where("code = ?", MailCode).Find(&list)

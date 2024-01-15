@@ -72,7 +72,7 @@ func (th *TaskHost) GetTaskIdsByHostId(hostId int16) ([]interface{}, error) {
 	return taskIds, err
 }
 
-// 判断主机id是否有引用
+// HostIdExist 判断主机id是否有引用
 func (th *TaskHost) HostIdExist(hostId int16) (bool, error) {
 	count, err := Db.Where("host_id = ?", hostId).Count(th)
 

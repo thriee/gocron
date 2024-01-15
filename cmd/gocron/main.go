@@ -12,9 +12,9 @@ import (
 
 	"github.com/ouqiang/goutil"
 	"github.com/thriee/gocron/internal/models"
-	"github.com/thriee/gocron/internal/modules/app"
-	"github.com/thriee/gocron/internal/modules/logger"
-	"github.com/thriee/gocron/internal/modules/setting"
+	"github.com/thriee/gocron/internal/pkg/app"
+	"github.com/thriee/gocron/internal/pkg/logger"
+	"github.com/thriee/gocron/internal/pkg/setting"
 	"github.com/thriee/gocron/internal/routers"
 	"github.com/thriee/gocron/internal/service"
 	"github.com/urfave/cli"

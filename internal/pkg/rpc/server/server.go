@@ -8,9 +8,9 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/thriee/gocron/internal/modules/rpc/auth"
-	pb "github.com/thriee/gocron/internal/modules/rpc/proto"
-	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/pkg/rpc/auth"
+	pb "github.com/thriee/gocron/internal/pkg/rpc/proto"
+	"github.com/thriee/gocron/internal/pkg/utils"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

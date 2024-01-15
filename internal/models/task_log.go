@@ -8,7 +8,7 @@ import (
 
 type TaskType int8
 
-// 任务执行日志
+// TaskLog 任务执行日志
 type TaskLog struct {
 	Id         int64        `json:"id" xorm:"bigint pk autoincr"`
 	TaskId     int          `json:"task_id" xorm:"int notnull index default 0"`       // 任务id
@@ -36,7 +36,7 @@ func (taskLog *TaskLog) Create() (insertId int64, err error) {
 	return
 }
 
-// 更新
+// Update 更新
 func (taskLog *TaskLog) Update(id int64, data CommonMap) (int64, error) {
 	return Db.Table(taskLog).ID(id).Update(data)
 }
@@ -61,12 +61,12 @@ func (taskLog *TaskLog) List(params CommonMap) ([]TaskLog, error) {
 	return list, err
 }
 
-// 清空表
+// Clear 清空表
 func (taskLog *TaskLog) Clear() (int64, error) {
 	return Db.Where("1=1").Delete(taskLog)
 }
 
-// 删除N个月前的日志
+// Remove 删除N个月前的日志
 func (taskLog *TaskLog) Remove(id int) (int64, error) {
 	t := time.Now().AddDate(0, -id, 0)
 	return Db.Where("start_time <= ?", t.Format(DefaultTimeFormat)).Delete(taskLog)

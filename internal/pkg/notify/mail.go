@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-gomail/gomail"
 	"github.com/thriee/gocron/internal/models"
-	"github.com/thriee/gocron/internal/modules/logger"
-	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/pkg/logger"
+	"github.com/thriee/gocron/internal/pkg/utils"
 )
 
 // @author qiang.ou<qingqianludao@gmail.com>

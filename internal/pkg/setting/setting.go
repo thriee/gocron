@@ -3,8 +3,8 @@ package setting
 import (
 	"errors"
 
-	"github.com/thriee/gocron/internal/modules/logger"
-	"github.com/thriee/gocron/internal/modules/utils"
+	"github.com/thriee/gocron/internal/pkg/logger"
+	"github.com/thriee/gocron/internal/pkg/utils"
 	"gopkg.in/ini.v1"
 )
 
