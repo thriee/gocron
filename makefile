@@ -1,7 +1,7 @@
 GO111MODULE=on
 
 .PHONY: build
-build: gocron node
+build: gocron agent
 
 .PHONY: build-race
 build-race: enable-race build
@@ -22,9 +22,9 @@ kill:
 gocron:
 	go build $(RACE) -o bin/gocron ./cmd/gocron
 
-.PHONY: node
-node:
-	go build $(RACE) -o bin/gocron-node ./cmd/node
+.PHONY: agent
+agent:
+	go build $(RACE) -o bin/gocron-agent ./cmd/agent
 
 .PHONY: test
 test:

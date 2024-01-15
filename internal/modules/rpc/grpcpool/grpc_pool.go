@@ -57,7 +57,7 @@ func (p *GRPCPool) Get(addr string) (rpc.TaskClient, error) {
 	return client.rpcClient, nil
 }
 
-// 释放连接
+// Release 释放连接
 func (p *GRPCPool) Release(addr string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()

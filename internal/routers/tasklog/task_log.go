@@ -30,7 +30,7 @@ func Index(ctx *macaron.Context) string {
 	})
 }
 
-// 清空日志
+// Clear 清空日志
 func Clear(ctx *macaron.Context) string {
 	taskLogModel := new(models.TaskLog)
 	_, err := taskLogModel.Clear()
@@ -42,7 +42,7 @@ func Clear(ctx *macaron.Context) string {
 	return json.Success(utils.SuccessContent, nil)
 }
 
-// 停止运行中的任务
+// Stop 停止运行中的任务
 func Stop(ctx *macaron.Context) string {
 	id := ctx.QueryInt64("id")
 	taskId := ctx.QueryInt("task_id")

@@ -169,7 +169,7 @@ func (task *Task) NameExist(name string, id int) (bool, error) {
 }
 
 func (task *Task) GetStatus(id int) (Status, error) {
-	exist, err := Db.Id(id).Get(task)
+	exist, err := Db.ID(id).Get(task)
 	if err != nil {
 		return 0, err
 	}
