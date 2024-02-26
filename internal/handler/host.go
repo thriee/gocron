@@ -1,11 +1,11 @@
-package host
+package handler
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/go-macaron/binding"
+	"github.com/thriee/gocron/internal/dto"
 	"github.com/thriee/gocron/internal/models"
 	"github.com/thriee/gocron/internal/pkg/logger"
 	"github.com/thriee/gocron/internal/pkg/rpc/client"
@@ -20,8 +20,10 @@ import (
 const testConnectionCommand = "echo hello"
 const testConnectionTimeout = 5
 
+type Host struct{}
+
 // Index 主机列表
-func Index(ctx *macaron.Context) string {
+func (h *Host) Index(ctx *macaron.Context) string {
 	hostModel := new(models.Host)
 	queryParams := parseQueryParams(ctx)
 	total, err := hostModel.Total(queryParams)
@@ -42,7 +44,7 @@ func Index(ctx *macaron.Context) string {
 }
 
 // All 获取所有主机
-func All(ctx *macaron.Context) string {
+func (h *Host) All(ctx *macaron.Context) string {
 	hostModel := new(models.Host)
 	hostModel.PageSize = -1
 	hosts, err := hostModel.List(models.CommonMap{})
@@ -56,7 +58,7 @@ func All(ctx *macaron.Context) string {
 }
 
 // Detail 主机详情
-func Detail(ctx *macaron.Context) string {
+func (h *Host) Detail(ctx *macaron.Context) string {
 	hostModel := new(models.Host)
 	id := ctx.ParamsInt(":id")
 	err := hostModel.Find(id)
@@ -69,26 +71,8 @@ func Detail(ctx *macaron.Context) string {
 	return jsonResp.Success(utils.SuccessContent, hostModel)
 }
 
-type HostForm struct {
-	Id     int16
-	Name   string `binding:"Required;MaxSize(64)"`
-	Alias  string `binding:"Required;MaxSize(32)"`
-	Port   int    `binding:"Required;Range(1-65535)"`
-	Remark string
-}
-
-// Error 表单验证错误处理
-func (f HostForm) Error(ctx *macaron.Context, errs binding.Errors) {
-	if len(errs) == 0 {
-		return
-	}
-	json := utils.JsonResponse{}
-	content := json.CommonFailure("表单验证失败, 请检测输入")
-	ctx.Write([]byte(content))
-}
-
 // Store 保存、修改主机信息
-func Store(ctx *macaron.Context, form HostForm) string {
+func (h *Host) Store(ctx *macaron.Context, form dto.HostForm) string {
 	json := utils.JsonResponse{}
 	hostModel := new(models.Host)
 	id := form.Id
@@ -140,7 +124,7 @@ func Store(ctx *macaron.Context, form HostForm) string {
 }
 
 // Remove 删除主机
-func Remove(ctx *macaron.Context) string {
+func (h *Host) Remove(ctx *macaron.Context) string {
 	id, err := strconv.Atoi(ctx.Params(":id"))
 	json := utils.JsonResponse{}
 	if err != nil {
@@ -173,7 +157,7 @@ func Remove(ctx *macaron.Context) string {
 }
 
 // Ping 测试主机是否可连接
-func Ping(ctx *macaron.Context) string {
+func (h *Host) Ping(ctx *macaron.Context) string {
 	id := ctx.ParamsInt(":id")
 	hostModel := new(models.Host)
 	err := hostModel.Find(id)

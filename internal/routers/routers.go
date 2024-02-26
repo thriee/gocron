@@ -12,10 +12,11 @@ import (
 	"github.com/go-macaron/gzip"
 	"github.com/go-macaron/toolbox"
 	"github.com/rakyll/statik/fs"
+	"github.com/thriee/gocron/internal/dto"
+	"github.com/thriee/gocron/internal/handler"
 	"github.com/thriee/gocron/internal/pkg/app"
 	"github.com/thriee/gocron/internal/pkg/logger"
 	"github.com/thriee/gocron/internal/pkg/utils"
-	"github.com/thriee/gocron/internal/routers/host"
 	"github.com/thriee/gocron/internal/routers/install"
 	"github.com/thriee/gocron/internal/routers/loginlog"
 	"github.com/thriee/gocron/internal/routers/manage"
@@ -94,14 +95,17 @@ func Register(m *macaron.Macaron) {
 		m.Get("/run/:id", task.Run)
 	})
 
+	hostHandler := new(handler.Host)
+
 	// 主机
 	m.Group("/host", func() {
-		m.Get("/:id", host.Detail)
-		m.Post("/store", binding.Bind(host.HostForm{}), host.Store)
-		m.Get("", host.Index)
-		m.Get("/all", host.All)
-		m.Get("/ping/:id", host.Ping)
-		m.Post("/remove/:id", host.Remove)
+		m.Get("/:id", hostHandler.Detail)
+		m.Get("", hostHandler.Index)
+		m.Get("/all", hostHandler.All)
+
+		m.Get("/ping/:id", hostHandler.Ping)
+		m.Post("/remove/:id", hostHandler.Remove)
+		m.Post("/store", binding.Bind(dto.HostForm{}), hostHandler.Store)
 	})
 
 	// 管理
