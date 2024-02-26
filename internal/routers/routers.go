@@ -22,7 +22,6 @@ import (
 	"github.com/thriee/gocron/internal/routers/manage"
 	"github.com/thriee/gocron/internal/routers/task"
 	"github.com/thriee/gocron/internal/routers/tasklog"
-	"github.com/thriee/gocron/internal/routers/user"
 	"gopkg.in/macaron.v1"
 
 	_ "github.com/thriee/gocron/internal/statik"
@@ -68,17 +67,19 @@ func Register(m *macaron.Macaron) {
 		})
 	})
 
+	userHandler := new(handler.User)
+
 	// 用户
 	m.Group("/user", func() {
-		m.Get("", user.Index)
-		m.Get("/:id", user.Detail)
-		m.Post("/store", binding.Bind(user.UserForm{}), user.Store)
-		m.Post("/remove/:id", user.Remove)
-		m.Post("/login", user.ValidateLogin)
-		m.Post("/enable/:id", user.Enable)
-		m.Post("/disable/:id", user.Disable)
-		m.Post("/editMyPassword", user.UpdateMyPassword)
-		m.Post("/editPassword/:id", user.UpdatePassword)
+		m.Get("", userHandler.Index)
+		m.Get("/:id", userHandler.Detail)
+		m.Post("/store", binding.Bind(dto.UserForm{}), userHandler.Store)
+		m.Post("/remove/:id", userHandler.Remove)
+		m.Post("/login", userHandler.ValidateLogin)
+		m.Post("/enable/:id", userHandler.Enable)
+		m.Post("/disable/:id", userHandler.Disable)
+		m.Post("/editMyPassword", userHandler.UpdateMyPassword)
+		m.Post("/editPassword/:id", userHandler.UpdatePassword)
 	})
 
 	// 定时任务
@@ -219,8 +220,8 @@ func userAuth(ctx *macaron.Context) {
 	if !app.Installed {
 		return
 	}
-	user.RestoreToken(ctx)
-	if user.IsLogin(ctx) {
+	handler.RestoreToken(ctx)
+	if handler.IsLogin(ctx) {
 		return
 	}
 	uri := strings.TrimRight(ctx.Req.URL.Path, "/")
@@ -244,7 +245,7 @@ func urlAuth(ctx *macaron.Context) {
 	if !app.Installed {
 		return
 	}
-	if user.IsAdmin(ctx) {
+	if handler.IsAdmin(ctx) {
 		return
 	}
 	uri := strings.TrimRight(ctx.Req.URL.Path, "/")

@@ -1,4 +1,4 @@
-package user
+package handler
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/thriee/gocron/internal/dto"
 	"github.com/thriee/gocron/internal/models"
 	"github.com/thriee/gocron/internal/pkg/app"
 	"github.com/thriee/gocron/internal/pkg/logger"
@@ -16,20 +17,11 @@ import (
 
 const tokenDuration = 4 * time.Hour
 
-// UserForm 用户表单
-type UserForm struct {
-	Id              int
-	Name            string `binding:"Required;MaxSize(32)"` // 用户名
-	Password        string // 密码
-	ConfirmPassword string // 确认密码
-	Email           string `binding:"Required;MaxSize(50)"` // 邮箱
-	IsAdmin         int8   // 是否是管理员 1:管理员 0:普通用户
-	Status          models.Status
-}
+type User struct{}
 
 // Index 用户列表页
-func Index(ctx *macaron.Context) string {
-	queryParams := parseQueryParams(ctx)
+func (u *User) Index(ctx *macaron.Context) string {
+	queryParams := u.parseQueryParams(ctx)
 	userModel := new(models.User)
 	users, err := userModel.List(queryParams)
 	if err != nil {
@@ -49,7 +41,7 @@ func Index(ctx *macaron.Context) string {
 }
 
 // 解析查询参数
-func parseQueryParams(ctx *macaron.Context) models.CommonMap {
+func (u *User) parseQueryParams(ctx *macaron.Context) models.CommonMap {
 	params := models.CommonMap{}
 	base.ParsePageAndPageSize(ctx, params)
 
@@ -57,7 +49,7 @@ func parseQueryParams(ctx *macaron.Context) models.CommonMap {
 }
 
 // Detail 用户详情
-func Detail(ctx *macaron.Context) string {
+func (u *User) Detail(ctx *macaron.Context) string {
 	userModel := new(models.User)
 	id := ctx.ParamsInt(":id")
 	err := userModel.Find(id)
@@ -72,8 +64,9 @@ func Detail(ctx *macaron.Context) string {
 	return jsonResp.Success(utils.SuccessContent, userModel)
 }
 
-// 保存任务
-func Store(ctx *macaron.Context, form UserForm) string {
+// Store 保存任务
+func (u *User) Store(ctx *macaron.Context, form dto.UserForm) string {
+	_ = ctx
 	form.Name = strings.TrimSpace(form.Name)
 	form.Email = strings.TrimSpace(form.Email)
 	form.Password = strings.TrimSpace(form.Password)
@@ -133,8 +126,8 @@ func Store(ctx *macaron.Context, form UserForm) string {
 	return json.Success("保存成功", nil)
 }
 
-// 删除用户
-func Remove(ctx *macaron.Context) string {
+// Remove 删除用户
+func (u *User) Remove(ctx *macaron.Context) string {
 	id := ctx.ParamsInt(":id")
 	json := utils.JsonResponse{}
 
@@ -147,18 +140,18 @@ func Remove(ctx *macaron.Context) string {
 	return json.Success(utils.SuccessContent, nil)
 }
 
-// 激活用户
-func Enable(ctx *macaron.Context) string {
-	return changeStatus(ctx, models.Enabled)
+// Enable 激活用户
+func (u *User) Enable(ctx *macaron.Context) string {
+	return u.changeStatus(ctx, models.Enabled)
 }
 
-// 禁用用户
-func Disable(ctx *macaron.Context) string {
-	return changeStatus(ctx, models.Disabled)
+// Disable 禁用用户
+func (u *User) Disable(ctx *macaron.Context) string {
+	return u.changeStatus(ctx, models.Disabled)
 }
 
 // 改变任务状态
-func changeStatus(ctx *macaron.Context, status models.Status) string {
+func (u *User) changeStatus(ctx *macaron.Context, status models.Status) string {
 	id := ctx.ParamsInt(":id")
 	json := utils.JsonResponse{}
 	userModel := new(models.User)
@@ -173,7 +166,7 @@ func changeStatus(ctx *macaron.Context, status models.Status) string {
 }
 
 // UpdatePassword 更新密码
-func UpdatePassword(ctx *macaron.Context) string {
+func (u *User) UpdatePassword(ctx *macaron.Context) string {
 	id := ctx.ParamsInt(":id")
 	newPassword := ctx.QueryTrim("new_password")
 	confirmNewPassword := ctx.QueryTrim("confirm_new_password")
@@ -194,7 +187,7 @@ func UpdatePassword(ctx *macaron.Context) string {
 }
 
 // UpdateMyPassword 更新我的密码
-func UpdateMyPassword(ctx *macaron.Context) string {
+func (u *User) UpdateMyPassword(ctx *macaron.Context) string {
 	oldPassword := ctx.QueryTrim("old_password")
 	newPassword := ctx.QueryTrim("new_password")
 	confirmNewPassword := ctx.QueryTrim("confirm_new_password")
@@ -209,10 +202,10 @@ func UpdateMyPassword(ctx *macaron.Context) string {
 		return json.CommonFailure("原密码与新密码不能相同")
 	}
 	userModel := new(models.User)
-	if !userModel.Match(Username(ctx), oldPassword) {
+	if !userModel.Match(u.Username(ctx), oldPassword) {
 		return json.CommonFailure("原密码输入错误")
 	}
-	_, err := userModel.UpdatePassword(Uid(ctx), newPassword)
+	_, err := userModel.UpdatePassword(u.Uid(ctx), newPassword)
 	if err != nil {
 		return json.CommonFailure("修改失败")
 	}
@@ -221,7 +214,7 @@ func UpdateMyPassword(ctx *macaron.Context) string {
 }
 
 // ValidateLogin 验证用户登录
-func ValidateLogin(ctx *macaron.Context) string {
+func (u *User) ValidateLogin(ctx *macaron.Context) string {
 	username := ctx.QueryTrim("username")
 	password := ctx.QueryTrim("password")
 	json := utils.JsonResponse{}
@@ -240,7 +233,7 @@ func ValidateLogin(ctx *macaron.Context) string {
 		logger.Error("记录用户登录日志失败", err)
 	}
 
-	token, err := generateToken(userModel)
+	token, err := u.generateToken(userModel)
 	if err != nil {
 		logger.Errorf("生成jwt失败: %s", err)
 		return json.Failure(utils.AuthError, "认证失败")
@@ -255,7 +248,7 @@ func ValidateLogin(ctx *macaron.Context) string {
 }
 
 // Username 获取session中的用户名
-func Username(ctx *macaron.Context) string {
+func (u *User) Username(ctx *macaron.Context) string {
 	usernameInterface, ok := ctx.Data["username"]
 	if !ok {
 		return ""
@@ -268,7 +261,7 @@ func Username(ctx *macaron.Context) string {
 }
 
 // Uid 获取session中的Uid
-func Uid(ctx *macaron.Context) int {
+func (u *User) Uid(ctx *macaron.Context) int {
 	uidInterface, ok := ctx.Data["uid"]
 	if !ok {
 		return 0
@@ -281,12 +274,12 @@ func Uid(ctx *macaron.Context) int {
 }
 
 // IsLogin 判断用户是否已登录
-func IsLogin(ctx *macaron.Context) bool {
-	return Uid(ctx) > 0
+func (u *User) IsLogin(ctx *macaron.Context) bool {
+	return u.Uid(ctx) > 0
 }
 
 // IsAdmin 判断当前用户是否是管理员
-func IsAdmin(ctx *macaron.Context) bool {
+func (u *User) IsAdmin(ctx *macaron.Context) bool {
 	isAdmin, ok := ctx.Data["is_admin"]
 	if !ok {
 		return false
@@ -299,7 +292,7 @@ func IsAdmin(ctx *macaron.Context) bool {
 }
 
 // 生成jwt
-func generateToken(user *models.User) (string, error) {
+func (u *User) generateToken(user *models.User) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := make(jwt.MapClaims)
 	claims["exp"] = time.Now().Add(tokenDuration).Unix()
@@ -313,8 +306,8 @@ func generateToken(user *models.User) (string, error) {
 	return token.SignedString([]byte(app.Setting.AuthSecret))
 }
 
-// 还原jwt
-func RestoreToken(ctx *macaron.Context) error {
+// RestoreToken 还原jwt
+func (u *User) RestoreToken(ctx *macaron.Context) error {
 	authToken := ctx.Req.Header.Get("Auth-Token")
 	if authToken == "" {
 		return nil

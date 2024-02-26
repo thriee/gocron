@@ -14,7 +14,7 @@ import (
 	"github.com/thriee/gocron/internal/pkg/utils"
 	"github.com/thriee/gocron/internal/routers/base"
 	"github.com/thriee/gocron/internal/service"
-	macaron "gopkg.in/macaron.v1"
+	"gopkg.in/macaron.v1"
 )
 
 const testConnectionCommand = "echo hello"
@@ -25,7 +25,7 @@ type Host struct{}
 // Index 主机列表
 func (h *Host) Index(ctx *macaron.Context) string {
 	hostModel := new(models.Host)
-	queryParams := parseQueryParams(ctx)
+	queryParams := h.parseQueryParams(ctx)
 	total, err := hostModel.Total(queryParams)
 	if err != nil {
 		logger.Error(err)
@@ -45,6 +45,7 @@ func (h *Host) Index(ctx *macaron.Context) string {
 
 // All 获取所有主机
 func (h *Host) All(ctx *macaron.Context) string {
+	_ = ctx
 	hostModel := new(models.Host)
 	hostModel.PageSize = -1
 	hosts, err := hostModel.List(models.CommonMap{})
@@ -73,6 +74,7 @@ func (h *Host) Detail(ctx *macaron.Context) string {
 
 // Store 保存、修改主机信息
 func (h *Host) Store(ctx *macaron.Context, form dto.HostForm) string {
+	_ = ctx
 	json := utils.JsonResponse{}
 	hostModel := new(models.Host)
 	id := form.Id
@@ -140,7 +142,7 @@ func (h *Host) Remove(ctx *macaron.Context) string {
 	}
 
 	hostModel := new(models.Host)
-	err = hostModel.Find(int(id))
+	err = hostModel.Find(id)
 	if err != nil {
 		return json.CommonFailure("主机不存在")
 	}
@@ -178,7 +180,7 @@ func (h *Host) Ping(ctx *macaron.Context) string {
 }
 
 // 解析查询参数
-func parseQueryParams(ctx *macaron.Context) models.CommonMap {
+func (h *Host) parseQueryParams(ctx *macaron.Context) models.CommonMap {
 	var params = models.CommonMap{}
 	params["Id"] = ctx.QueryInt("id")
 	params["Name"] = ctx.QueryTrim("name")
