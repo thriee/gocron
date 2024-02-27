@@ -1,4 +1,4 @@
-package tasklog
+package handler
 
 // 任务日志
 
@@ -6,14 +6,15 @@ import (
 	"github.com/thriee/gocron/internal/models"
 	"github.com/thriee/gocron/internal/pkg/logger"
 	"github.com/thriee/gocron/internal/pkg/utils"
-	"github.com/thriee/gocron/internal/routers/base"
 	"github.com/thriee/gocron/internal/service"
 	"gopkg.in/macaron.v1"
 )
 
-func Index(ctx *macaron.Context) string {
+type TaskLog struct{}
+
+func (t *TaskLog) Index(ctx *macaron.Context) string {
 	logModel := new(models.TaskLog)
-	queryParams := parseQueryParams(ctx)
+	queryParams := t.parseQueryParams(ctx)
 	total, err := logModel.Total(queryParams)
 	if err != nil {
 		logger.Error(err)
@@ -31,7 +32,7 @@ func Index(ctx *macaron.Context) string {
 }
 
 // Clear 清空日志
-func Clear(ctx *macaron.Context) string {
+func (t *TaskLog) Clear(ctx *macaron.Context) string {
 	taskLogModel := new(models.TaskLog)
 	_, err := taskLogModel.Clear()
 	json := utils.JsonResponse{}
@@ -43,7 +44,7 @@ func Clear(ctx *macaron.Context) string {
 }
 
 // Stop 停止运行中的任务
-func Stop(ctx *macaron.Context) string {
+func (t *TaskLog) Stop(ctx *macaron.Context) string {
 	id := ctx.QueryInt64("id")
 	taskId := ctx.QueryInt("task_id")
 	taskModel := new(models.Task)
@@ -66,8 +67,8 @@ func Stop(ctx *macaron.Context) string {
 	return json.Success("已执行停止操作, 请等待任务退出", nil)
 }
 
-// 删除N个月前的日志
-func Remove(ctx *macaron.Context) string {
+// Remove 删除N个月前的日志
+func (t *TaskLog) Remove(ctx *macaron.Context) string {
 	month := ctx.ParamsInt(":id")
 	json := utils.JsonResponse{}
 	if month < 1 || month > 12 {
@@ -83,8 +84,8 @@ func Remove(ctx *macaron.Context) string {
 }
 
 // 解析查询参数
-func parseQueryParams(ctx *macaron.Context) models.CommonMap {
-	var params models.CommonMap = models.CommonMap{}
+func (t *TaskLog) parseQueryParams(ctx *macaron.Context) models.CommonMap {
+	var params = models.CommonMap{}
 	params["TaskId"] = ctx.QueryInt("task_id")
 	params["Protocol"] = ctx.QueryInt("protocol")
 	status := ctx.QueryInt("status")
@@ -92,7 +93,7 @@ func parseQueryParams(ctx *macaron.Context) models.CommonMap {
 		status -= 1
 	}
 	params["Status"] = status
-	base.ParsePageAndPageSize(ctx, params)
+	ParsePageAndPageSize(ctx, params)
 
 	return params
 }

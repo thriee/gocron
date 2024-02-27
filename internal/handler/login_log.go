@@ -1,17 +1,18 @@
-package loginlog
+package handler
 
 import (
 	"github.com/thriee/gocron/internal/models"
 	"github.com/thriee/gocron/internal/pkg/logger"
 	"github.com/thriee/gocron/internal/pkg/utils"
-	"github.com/thriee/gocron/internal/routers/base"
-	macaron "gopkg.in/macaron.v1"
+	"gopkg.in/macaron.v1"
 )
 
-func Index(ctx *macaron.Context) string {
+type LoginLog struct{}
+
+func (l *LoginLog) Index(ctx *macaron.Context) string {
 	loginLogModel := new(models.LoginLog)
 	params := models.CommonMap{}
-	base.ParsePageAndPageSize(ctx, params)
+	ParsePageAndPageSize(ctx, params)
 	total, err := loginLogModel.Total()
 	if err != nil {
 		logger.Error(err)

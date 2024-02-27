@@ -38,7 +38,7 @@ var (
 	concurrencyQueue ConcurrencyQueue
 )
 
-// 并发队列
+// ConcurrencyQueue 并发队列
 type ConcurrencyQueue struct {
 	queue chan struct{}
 }
@@ -51,7 +51,7 @@ func (cq *ConcurrencyQueue) Done() {
 	<-cq.queue
 }
 
-// 任务计数
+// TaskCount 任务计数
 type TaskCount struct {
 	wg   sync.WaitGroup
 	exit chan struct{}
@@ -76,7 +76,7 @@ func (tc *TaskCount) Wait() {
 	close(tc.exit)
 }
 
-// 任务ID作为Key
+// Instance 任务ID作为Key
 type Instance struct {
 	m sync.Map
 }
@@ -104,7 +104,7 @@ type TaskResult struct {
 	RetryTimes int8
 }
 
-// 初始化任务, 从数据库取出所有任务, 添加到定时任务并运行
+// Initialize 初始化任务, 从数据库取出所有任务, 添加到定时任务并运行
 func (task Task) Initialize() {
 	serviceCron = cron.New()
 	serviceCron.Start()
@@ -135,20 +135,20 @@ func (task Task) Initialize() {
 	logger.Infof("定时任务初始化完成, 共%d个定时任务添加到调度器", taskNum)
 }
 
-// 批量添加任务
+// BatchAdd 批量添加任务
 func (task Task) BatchAdd(tasks []models.Task) {
 	for _, item := range tasks {
 		task.RemoveAndAdd(item)
 	}
 }
 
-// 删除任务后添加
+// RemoveAndAdd 删除任务后添加
 func (task Task) RemoveAndAdd(taskModel models.Task) {
 	task.Remove(taskModel.Id)
 	task.Add(taskModel)
 }
 
-// 添加任务
+// Add 添加任务
 func (task Task) Add(taskModel models.Task) {
 	if taskModel.Level == models.TaskLevelChild {
 		logger.Errorf("添加任务失败#不允许添加子任务到调度器#任务Id-%d", taskModel.Id)
@@ -185,7 +185,7 @@ func (task Task) NextRunTime(taskModel models.Task) time.Time {
 	return time.Time{}
 }
 
-// 停止运行中的任务
+// Stop 停止运行中的任务
 func (task Task) Stop(ip string, port int, id int64) {
 	rpcClient.Stop(ip, port, id)
 }
@@ -194,13 +194,13 @@ func (task Task) Remove(id int) {
 	serviceCron.RemoveJob(strconv.Itoa(id))
 }
 
-// 等待所有任务结束后退出
+// WaitAndExit 等待所有任务结束后退出
 func (task Task) WaitAndExit() {
 	serviceCron.Stop()
 	taskCount.Exit()
 }
 
-// 直接运行任务
+// Run 直接运行任务
 func (task Task) Run(taskModel models.Task) {
 	go createJob(taskModel)()
 }
@@ -209,10 +209,10 @@ type Handler interface {
 	Run(taskModel models.Task, taskUniqueId int64) (string, error)
 }
 
-// HTTP任务
+// HTTPHandler HTTP任务
 type HTTPHandler struct{}
 
-// http任务执行时间不超过300秒
+// HttpExecTimeout http任务执行时间不超过300秒
 const HttpExecTimeout = 300
 
 func (h *HTTPHandler) Run(taskModel models.Task, taskUniqueId int64) (result string, err error) {
@@ -239,7 +239,7 @@ func (h *HTTPHandler) Run(taskModel models.Task, taskUniqueId int64) (result str
 	return resp.Body, err
 }
 
-// RPC调用执行任务
+// RPCHandler RPC调用执行任务
 type RPCHandler struct{}
 
 func (h *RPCHandler) Run(taskModel models.Task, taskUniqueId int64) (result string, err error) {
@@ -362,7 +362,7 @@ func createHandler(taskModel models.Task) Handler {
 // 任务前置操作
 func beforeExecJob(taskModel models.Task) (taskLogId int64) {
 	if taskModel.Multi == 0 && runInstance.has(taskModel.Id) {
-		createTaskLog(taskModel, models.Cancel)
+		_, _ = createTaskLog(taskModel, models.Cancel)
 		return
 	}
 	taskLogId, err := createTaskLog(taskModel, models.Running)
@@ -423,7 +423,7 @@ func execDependencyTask(taskModel models.Task, taskResult TaskResult) {
 	}
 }
 
-// 发送任务结果通知
+// SendNotification 发送任务结果通知
 func SendNotification(taskModel models.Task, taskResult TaskResult) {
 	var statusName string
 	// 未开启通知

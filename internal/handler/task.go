@@ -1,58 +1,26 @@
-package task
+package handler
 
 import (
 	"strconv"
 	"strings"
 
 	"github.com/ouqiang/goutil"
+	"github.com/thriee/gocron/internal/dto"
 
-	"github.com/go-macaron/binding"
 	"github.com/jakecoffman/cron"
 	"github.com/thriee/gocron/internal/models"
 	"github.com/thriee/gocron/internal/pkg/logger"
 	"github.com/thriee/gocron/internal/pkg/utils"
-	"github.com/thriee/gocron/internal/routers/base"
 	"github.com/thriee/gocron/internal/service"
 	"gopkg.in/macaron.v1"
 )
 
-type TaskForm struct {
-	Id               int
-	Level            models.TaskLevel `binding:"Required;In(1,2)"`
-	DependencyStatus models.TaskDependencyStatus
-	DependencyTaskId string
-	Name             string `binding:"Required;MaxSize(32)"`
-	Spec             string
-	Protocol         models.TaskProtocol   `binding:"In(1,2)"`
-	Command          string                `binding:"Required;MaxSize(256)"`
-	HttpMethod       models.TaskHTTPMethod `binding:"In(1,2)"`
-	Timeout          int                   `binding:"Range(0,86400)"`
-	Multi            int8                  `binding:"In(1,2)"`
-	RetryTimes       int8
-	RetryInterval    int16
-	HostId           string
-	Tag              string
-	Remark           string
-	NotifyStatus     int8 `binding:"In(1,2,3,4)"`
-	NotifyType       int8 `binding:"In(1,2,3,4)"`
-	NotifyReceiverId string
-	NotifyKeyword    string
-}
+type Task struct{}
 
-func (f TaskForm) Error(ctx *macaron.Context, errs binding.Errors) {
-	if len(errs) == 0 {
-		return
-	}
-	json := utils.JsonResponse{}
-	content := json.CommonFailure("表单验证失败, 请检测输入")
-
-	ctx.Resp.Write([]byte(content))
-}
-
-// 首页
-func Index(ctx *macaron.Context) string {
+// Index 首页
+func (t *Task) Index(ctx *macaron.Context) string {
 	taskModel := new(models.Task)
-	queryParams := parseQueryParams(ctx)
+	queryParams := t.parseQueryParams(ctx)
 	total, err := taskModel.Total(queryParams)
 	if err != nil {
 		logger.Error(err)
@@ -73,7 +41,7 @@ func Index(ctx *macaron.Context) string {
 }
 
 // Detail 任务详情
-func Detail(ctx *macaron.Context) string {
+func (t *Task) Detail(ctx *macaron.Context) string {
 	id := ctx.ParamsInt(":id")
 	taskModel := new(models.Task)
 	task, err := taskModel.Detail(id)
@@ -86,8 +54,9 @@ func Detail(ctx *macaron.Context) string {
 	return jsonResp.Success(utils.SuccessContent, task)
 }
 
-// 保存任务  todo 拆分为多个方法
-func Store(ctx *macaron.Context, form TaskForm) string {
+// Store 保存任务  todo 拆分为多个方法
+func (t *Task) Store(ctx *macaron.Context, form dto.TaskForm) string {
+	_ = ctx
 	json := utils.JsonResponse{}
 	taskModel := models.Task{}
 	var id = form.Id
@@ -195,14 +164,14 @@ func Store(ctx *macaron.Context, form TaskForm) string {
 
 	status, _ := taskModel.GetStatus(id)
 	if status == models.Enabled && taskModel.Level == models.TaskLevelParent {
-		addTaskToTimer(id)
+		t.addTaskToTimer(id)
 	}
 
 	return json.Success("保存成功", nil)
 }
 
-// 删除任务
-func Remove(ctx *macaron.Context) string {
+// Remove 删除任务
+func (t *Task) Remove(ctx *macaron.Context) string {
 	id := ctx.ParamsInt(":id")
 	json := utils.JsonResponse{}
 	taskModel := new(models.Task)
@@ -212,25 +181,25 @@ func Remove(ctx *macaron.Context) string {
 	}
 
 	taskHostModel := new(models.TaskHost)
-	taskHostModel.Remove(id)
+	_ = taskHostModel.Remove(id)
 
 	service.ServiceTask.Remove(id)
 
 	return json.Success(utils.SuccessContent, nil)
 }
 
-// 激活任务
-func Enable(ctx *macaron.Context) string {
-	return changeStatus(ctx, models.Enabled)
+// Enable 激活任务
+func (t *Task) Enable(ctx *macaron.Context) string {
+	return t.changeStatus(ctx, models.Enabled)
 }
 
-// 暂停任务
-func Disable(ctx *macaron.Context) string {
-	return changeStatus(ctx, models.Disabled)
+// Disable 暂停任务
+func (t *Task) Disable(ctx *macaron.Context) string {
+	return t.changeStatus(ctx, models.Disabled)
 }
 
-// 手动运行任务
-func Run(ctx *macaron.Context) string {
+// Run 手动运行任务
+func (t *Task) Run(ctx *macaron.Context) string {
 	id := ctx.ParamsInt(":id")
 	json := utils.JsonResponse{}
 	taskModel := new(models.Task)
@@ -246,7 +215,7 @@ func Run(ctx *macaron.Context) string {
 }
 
 // 改变任务状态
-func changeStatus(ctx *macaron.Context, status models.Status) string {
+func (t *Task) changeStatus(ctx *macaron.Context, status models.Status) string {
 	id := ctx.ParamsInt(":id")
 	json := utils.JsonResponse{}
 	taskModel := new(models.Task)
@@ -258,7 +227,7 @@ func changeStatus(ctx *macaron.Context, status models.Status) string {
 	}
 
 	if status == models.Enabled {
-		addTaskToTimer(id)
+		t.addTaskToTimer(id)
 	} else {
 		service.ServiceTask.Remove(id)
 	}
@@ -267,7 +236,7 @@ func changeStatus(ctx *macaron.Context, status models.Status) string {
 }
 
 // 添加任务到定时器
-func addTaskToTimer(id int) {
+func (t *Task) addTaskToTimer(id int) {
 	taskModel := new(models.Task)
 	task, err := taskModel.Detail(id)
 	if err != nil {
@@ -279,8 +248,8 @@ func addTaskToTimer(id int) {
 }
 
 // 解析查询参数
-func parseQueryParams(ctx *macaron.Context) models.CommonMap {
-	var params models.CommonMap = models.CommonMap{}
+func (t *Task) parseQueryParams(ctx *macaron.Context) models.CommonMap {
+	var params = models.CommonMap{}
 	params["Id"] = ctx.QueryInt("id")
 	params["HostId"] = ctx.QueryInt("host_id")
 	params["Name"] = ctx.QueryTrim("name")
@@ -291,7 +260,7 @@ func parseQueryParams(ctx *macaron.Context) models.CommonMap {
 		status -= 1
 	}
 	params["Status"] = status
-	base.ParsePageAndPageSize(ctx, params)
+	ParsePageAndPageSize(ctx, params)
 
 	return params
 }

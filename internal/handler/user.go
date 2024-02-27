@@ -11,7 +11,6 @@ import (
 	"github.com/thriee/gocron/internal/pkg/app"
 	"github.com/thriee/gocron/internal/pkg/logger"
 	"github.com/thriee/gocron/internal/pkg/utils"
-	"github.com/thriee/gocron/internal/routers/base"
 	"gopkg.in/macaron.v1"
 )
 
@@ -43,7 +42,7 @@ func (u *User) Index(ctx *macaron.Context) string {
 // 解析查询参数
 func (u *User) parseQueryParams(ctx *macaron.Context) models.CommonMap {
 	params := models.CommonMap{}
-	base.ParsePageAndPageSize(ctx, params)
+	ParsePageAndPageSize(ctx, params)
 
 	return params
 }

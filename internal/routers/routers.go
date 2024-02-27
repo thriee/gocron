@@ -17,11 +17,6 @@ import (
 	"github.com/thriee/gocron/internal/pkg/app"
 	"github.com/thriee/gocron/internal/pkg/logger"
 	"github.com/thriee/gocron/internal/pkg/utils"
-	"github.com/thriee/gocron/internal/routers/install"
-	"github.com/thriee/gocron/internal/routers/loginlog"
-	"github.com/thriee/gocron/internal/routers/manage"
-	"github.com/thriee/gocron/internal/routers/task"
-	"github.com/thriee/gocron/internal/routers/tasklog"
 	"gopkg.in/macaron.v1"
 
 	_ "github.com/thriee/gocron/internal/statik"
@@ -55,12 +50,15 @@ func Register(m *macaron.Macaron) {
 			return
 		}
 
-		io.Copy(ctx.Resp, file)
+		_, _ = io.Copy(ctx.Resp, file)
 
 	})
+
+	installHandler := new(handler.Install)
+
 	// 系统安装
 	m.Group("/install", func() {
-		m.Post("/store", binding.Bind(install.InstallForm{}), install.Store)
+		m.Post("/store", binding.Bind(dto.InstallForm{}), installHandler.Store)
 		m.Get("/status", func(ctx *macaron.Context) string {
 			jsonResp := utils.JsonResponse{}
 			return jsonResp.Success("", app.Installed)
@@ -82,18 +80,22 @@ func Register(m *macaron.Macaron) {
 		m.Post("/editPassword/:id", userHandler.UpdatePassword)
 	})
 
+	taskHandler := new(handler.Task)
+	taskLogHandler := new(handler.TaskLog)
+
 	// 定时任务
 	m.Group("/task", func() {
-		m.Post("/store", binding.Bind(task.TaskForm{}), task.Store)
-		m.Get("/:id", task.Detail)
-		m.Get("", task.Index)
-		m.Get("/log", tasklog.Index)
-		m.Post("/log/clear", tasklog.Clear)
-		m.Post("/log/stop", tasklog.Stop)
-		m.Post("/remove/:id", task.Remove)
-		m.Post("/enable/:id", task.Enable)
-		m.Post("/disable/:id", task.Disable)
-		m.Get("/run/:id", task.Run)
+		m.Post("/store", binding.Bind(dto.TaskForm{}), taskHandler.Store)
+		m.Get("/:id", taskHandler.Detail)
+		m.Get("", taskHandler.Index)
+		m.Post("/remove/:id", taskHandler.Remove)
+		m.Post("/enable/:id", taskHandler.Enable)
+		m.Post("/disable/:id", taskHandler.Disable)
+		m.Get("/run/:id", taskHandler.Run)
+
+		m.Get("/log", taskLogHandler.Index)
+		m.Post("/log/clear", taskLogHandler.Clear)
+		m.Post("/log/stop", taskLogHandler.Stop)
 	})
 
 	hostHandler := new(handler.Host)
@@ -109,32 +111,34 @@ func Register(m *macaron.Macaron) {
 		m.Post("/store", binding.Bind(dto.HostForm{}), hostHandler.Store)
 	})
 
+	loginLogHandler := new(handler.LoginLog)
+	manageHandler := new(handler.Manage)
 	// 管理
 	m.Group("/system", func() {
 		m.Group("/slack", func() {
-			m.Get("", manage.Slack)
-			m.Post("/update", manage.UpdateSlack)
-			m.Post("/channel", manage.CreateSlackChannel)
-			m.Post("/channel/remove/:id", manage.RemoveSlackChannel)
+			m.Get("", manageHandler.Slack)
+			m.Post("/update", manageHandler.UpdateSlack)
+			m.Post("/channel", manageHandler.CreateSlackChannel)
+			m.Post("/channel/remove/:id", manageHandler.RemoveSlackChannel)
 		})
 		m.Group("/mail", func() {
-			m.Get("", manage.Mail)
-			m.Post("/update", binding.Bind(manage.MailServerForm{}), manage.UpdateMail)
-			m.Post("/user", manage.CreateMailUser)
-			m.Post("/user/remove/:id", manage.RemoveMailUser)
+			m.Get("", manageHandler.Mail)
+			m.Post("/update", binding.Bind(dto.MailServerForm{}), manageHandler.UpdateMail)
+			m.Post("/user", manageHandler.CreateMailUser)
+			m.Post("/user/remove/:id", manageHandler.RemoveMailUser)
 		})
 		m.Group("/webhook", func() {
-			m.Get("", manage.WebHook)
-			m.Post("/update", manage.UpdateWebHook)
+			m.Get("", manageHandler.WebHook)
+			m.Post("/update", manageHandler.UpdateWebHook)
 		})
-		m.Get("/login-log", loginlog.Index)
+		m.Get("/login-log", loginLogHandler.Index)
 	})
 
 	// API
 	m.Group("/v1", func() {
-		m.Post("/tasklog/remove/:id", tasklog.Remove)
-		m.Post("/task/enable/:id", task.Enable)
-		m.Post("/task/disable/:id", task.Disable)
+		m.Post("/tasklog/remove/:id", taskLogHandler.Remove)
+		m.Post("/task/enable/:id", taskHandler.Enable)
+		m.Post("/task/disable/:id", taskHandler.Disable)
 	}, apiAuth)
 
 	// 404错误
@@ -190,7 +194,7 @@ func checkAppInstall(ctx *macaron.Context) {
 	jsonResp := utils.JsonResponse{}
 
 	data := jsonResp.Failure(utils.AppNotInstall, "应用未安装")
-	ctx.Write([]byte(data))
+	_, _ = ctx.Write([]byte(data))
 }
 
 // IP验证, 通过反向代理访问gocron，需设置Header X-Real-IP才能获取到客户端真实IP
@@ -212,7 +216,7 @@ func ipAuth(ctx *macaron.Context) {
 
 	data := jsonResp.Failure(utils.UnauthorizedError, "您无权限访问")
 
-	ctx.Write([]byte(data))
+	_, _ = ctx.Write([]byte(data))
 }
 
 // 用户认证
@@ -220,8 +224,9 @@ func userAuth(ctx *macaron.Context) {
 	if !app.Installed {
 		return
 	}
-	handler.RestoreToken(ctx)
-	if handler.IsLogin(ctx) {
+	userHandler := new(handler.User)
+	_ = userHandler.RestoreToken(ctx)
+	if userHandler.IsLogin(ctx) {
 		return
 	}
 	uri := strings.TrimRight(ctx.Req.URL.Path, "/")
@@ -236,16 +241,19 @@ func userAuth(ctx *macaron.Context) {
 	}
 	jsonResp := utils.JsonResponse{}
 	data := jsonResp.Failure(utils.AuthError, "认证失败")
-	ctx.Write([]byte(data))
+	_, _ = ctx.Write([]byte(data))
 
 }
 
 // URL权限验证
 func urlAuth(ctx *macaron.Context) {
+
+	userHandler := new(handler.User)
+
 	if !app.Installed {
 		return
 	}
-	if handler.IsAdmin(ctx) {
+	if userHandler.IsAdmin(ctx) {
 		return
 	}
 	uri := strings.TrimRight(ctx.Req.URL.Path, "/")
@@ -272,7 +280,7 @@ func urlAuth(ctx *macaron.Context) {
 	jsonResp := utils.JsonResponse{}
 
 	data := jsonResp.Failure(utils.UnauthorizedError, "您无权限访问")
-	ctx.Write([]byte(data))
+	_, _ = ctx.Write([]byte(data))
 }
 
 /** API接口签名验证 **/
@@ -288,32 +296,32 @@ func apiAuth(ctx *macaron.Context) {
 	json := utils.JsonResponse{}
 	if apiKey == "" || apiSecret == "" {
 		msg := json.CommonFailure("使用API前, 请先配置密钥")
-		ctx.Write([]byte(msg))
+		_, _ = ctx.Write([]byte(msg))
 		return
 	}
 	currentTimestamp := time.Now().Unix()
-	time := ctx.QueryInt64("time")
-	if time <= 0 {
+	queryInt64 := ctx.QueryInt64("time")
+	if queryInt64 <= 0 {
 		msg := json.CommonFailure("参数time不能为空")
-		ctx.Write([]byte(msg))
+		_, _ = ctx.Write([]byte(msg))
 		return
 	}
-	if time < (currentTimestamp - 1800) {
+	if queryInt64 < (currentTimestamp - 1800) {
 		msg := json.CommonFailure("time无效")
-		ctx.Write([]byte(msg))
+		_, _ = ctx.Write([]byte(msg))
 		return
 	}
 	sign := ctx.QueryTrim("sign")
 	if sign == "" {
 		msg := json.CommonFailure("参数sign不能为空")
-		ctx.Write([]byte(msg))
+		_, _ = ctx.Write([]byte(msg))
 		return
 	}
-	raw := apiKey + strconv.FormatInt(time, 10) + strings.TrimSpace(ctx.Req.URL.Path) + apiSecret
+	raw := apiKey + strconv.FormatInt(queryInt64, 10) + strings.TrimSpace(ctx.Req.URL.Path) + apiSecret
 	realSign := utils.Md5(raw)
 	if sign != realSign {
 		msg := json.CommonFailure("签名验证失败")
-		ctx.Write([]byte(msg))
+		_, _ = ctx.Write([]byte(msg))
 		return
 	}
 }

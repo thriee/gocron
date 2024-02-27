@@ -1,15 +1,18 @@
-package manage
+package handler
 
 import (
 	"encoding/json"
 
+	"github.com/thriee/gocron/internal/dto"
 	"github.com/thriee/gocron/internal/models"
 	"github.com/thriee/gocron/internal/pkg/logger"
 	"github.com/thriee/gocron/internal/pkg/utils"
 	"gopkg.in/macaron.v1"
 )
 
-func Slack(ctx *macaron.Context) string {
+type Manage struct{}
+
+func (m *Manage) Slack(ctx *macaron.Context) string {
 	settingModel := new(models.Setting)
 	slack, err := settingModel.Slack()
 	jsonResp := utils.JsonResponse{}
@@ -22,7 +25,7 @@ func Slack(ctx *macaron.Context) string {
 	return jsonResp.Success(utils.SuccessContent, slack)
 }
 
-func UpdateSlack(ctx *macaron.Context) string {
+func (m *Manage) UpdateSlack(ctx *macaron.Context) string {
 	url := ctx.QueryTrim("url")
 	template := ctx.QueryTrim("template")
 	settingModel := new(models.Setting)
@@ -31,7 +34,7 @@ func UpdateSlack(ctx *macaron.Context) string {
 	return utils.JsonResponseByErr(err)
 }
 
-func CreateSlackChannel(ctx *macaron.Context) string {
+func (m *Manage) CreateSlackChannel(ctx *macaron.Context) string {
 	channel := ctx.QueryTrim("channel")
 	settingModel := new(models.Setting)
 	if settingModel.IsChannelExist(channel) {
@@ -44,7 +47,7 @@ func CreateSlackChannel(ctx *macaron.Context) string {
 	return utils.JsonResponseByErr(err)
 }
 
-func RemoveSlackChannel(ctx *macaron.Context) string {
+func (m *Manage) RemoveSlackChannel(ctx *macaron.Context) string {
 	id := ctx.ParamsInt(":id")
 	settingModel := new(models.Setting)
 	_, err := settingModel.RemoveChannel(id)
@@ -55,7 +58,7 @@ func RemoveSlackChannel(ctx *macaron.Context) string {
 // endregion
 
 // Mail region 邮件
-func Mail(ctx *macaron.Context) string {
+func (m *Manage) Mail(ctx *macaron.Context) string {
 	settingModel := new(models.Setting)
 	mail, err := settingModel.Mail()
 	jsonResp := utils.JsonResponse{}
@@ -67,14 +70,7 @@ func Mail(ctx *macaron.Context) string {
 	return jsonResp.Success("", mail)
 }
 
-type MailServerForm struct {
-	Host     string `binding:"Required;MaxSize(100)"`
-	Port     int    `binding:"Required;Range(1-65535)"`
-	User     string `binding:"Required;MaxSize(64);Email"`
-	Password string `binding:"Required;MaxSize(64)"`
-}
-
-func UpdateMail(ctx *macaron.Context, form MailServerForm) string {
+func (m *Manage) UpdateMail(ctx *macaron.Context, form dto.MailServerForm) string {
 	jsonByte, _ := json.Marshal(form)
 	settingModel := new(models.Setting)
 
@@ -84,7 +80,7 @@ func UpdateMail(ctx *macaron.Context, form MailServerForm) string {
 	return utils.JsonResponseByErr(err)
 }
 
-func CreateMailUser(ctx *macaron.Context) string {
+func (m *Manage) CreateMailUser(ctx *macaron.Context) string {
 	username := ctx.QueryTrim("username")
 	email := ctx.QueryTrim("email")
 	settingModel := new(models.Setting)
@@ -98,7 +94,7 @@ func CreateMailUser(ctx *macaron.Context) string {
 	return utils.JsonResponseByErr(err)
 }
 
-func RemoveMailUser(ctx *macaron.Context) string {
+func (m *Manage) RemoveMailUser(ctx *macaron.Context) string {
 	id := ctx.ParamsInt(":id")
 	settingModel := new(models.Setting)
 	_, err := settingModel.RemoveMailUser(id)
@@ -106,7 +102,7 @@ func RemoveMailUser(ctx *macaron.Context) string {
 	return utils.JsonResponseByErr(err)
 }
 
-func WebHook(ctx *macaron.Context) string {
+func (m *Manage) WebHook(ctx *macaron.Context) string {
 	settingModel := new(models.Setting)
 	webHook, err := settingModel.Webhook()
 	jsonResp := utils.JsonResponse{}
@@ -118,7 +114,7 @@ func WebHook(ctx *macaron.Context) string {
 	return jsonResp.Success("", webHook)
 }
 
-func UpdateWebHook(ctx *macaron.Context) string {
+func (m *Manage) UpdateWebHook(ctx *macaron.Context) string {
 	url := ctx.QueryTrim("url")
 	template := ctx.QueryTrim("template")
 	settingModel := new(models.Setting)

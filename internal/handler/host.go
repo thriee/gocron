@@ -12,7 +12,6 @@ import (
 	"github.com/thriee/gocron/internal/pkg/rpc/grpcpool"
 	rpc "github.com/thriee/gocron/internal/pkg/rpc/proto"
 	"github.com/thriee/gocron/internal/pkg/utils"
-	"github.com/thriee/gocron/internal/routers/base"
 	"github.com/thriee/gocron/internal/service"
 	"gopkg.in/macaron.v1"
 )
@@ -184,7 +183,7 @@ func (h *Host) parseQueryParams(ctx *macaron.Context) models.CommonMap {
 	var params = models.CommonMap{}
 	params["Id"] = ctx.QueryInt("id")
 	params["Name"] = ctx.QueryTrim("name")
-	base.ParsePageAndPageSize(ctx, params)
+	ParsePageAndPageSize(ctx, params)
 
 	return params
 }

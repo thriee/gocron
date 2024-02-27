@@ -1,13 +1,14 @@
-package install
+package handler
 
 import (
 	"errors"
 	"fmt"
 	"strconv"
 
-	macaron "gopkg.in/macaron.v1"
+	"github.com/thriee/gocron/internal/dto"
+	"gopkg.in/macaron.v1"
+	"xorm.io/xorm"
 
-	"github.com/go-macaron/binding"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/thriee/gocron/internal/models"
@@ -17,33 +18,11 @@ import (
 	"github.com/thriee/gocron/internal/service"
 )
 
-// 系统安装
+type Install struct{}
 
-type InstallForm struct {
-	DbType               string `binding:"In(mysql,postgres)"`
-	DbHost               string `binding:"Required;MaxSize(50)"`
-	DbPort               int    `binding:"Required;Range(1,65535)"`
-	DbUsername           string `binding:"Required;MaxSize(50)"`
-	DbPassword           string `binding:"Required;MaxSize(30)"`
-	DbName               string `binding:"Required;MaxSize(50)"`
-	DbTablePrefix        string `binding:"MaxSize(20)"`
-	AdminUsername        string `binding:"Required;MinSize(3)"`
-	AdminPassword        string `binding:"Required;MinSize(6)"`
-	ConfirmAdminPassword string `binding:"Required;MinSize(6)"`
-	AdminEmail           string `binding:"Required;Email;MaxSize(50)"`
-}
-
-func (f InstallForm) Error(ctx *macaron.Context, errs binding.Errors) {
-	if len(errs) == 0 {
-		return
-	}
-	json := utils.JsonResponse{}
-	content := json.CommonFailure("表单验证失败, 请检测输入")
-	ctx.Write([]byte(content))
-}
-
-// 安装
-func Store(ctx *macaron.Context, form InstallForm) string {
+// Store 安装
+func (i *Install) Store(ctx *macaron.Context, form dto.InstallForm) string {
+	_ = ctx
 	json := utils.JsonResponse{}
 	if app.Installed {
 		return json.CommonFailure("系统已安装!")
@@ -51,12 +30,12 @@ func Store(ctx *macaron.Context, form InstallForm) string {
 	if form.AdminPassword != form.ConfirmAdminPassword {
 		return json.CommonFailure("两次输入密码不匹配")
 	}
-	err := testDbConnection(form)
+	err := i.testDbConnection(form)
 	if err != nil {
 		return json.CommonFailure(err.Error())
 	}
 	// 写入数据库配置
-	err = writeConfig(form)
+	err = i.writeConfig(form)
 	if err != nil {
 		return json.CommonFailure("数据库配置写入文件失败", err)
 	}
@@ -76,7 +55,7 @@ func Store(ctx *macaron.Context, form InstallForm) string {
 	}
 
 	// 创建管理员账号
-	err = createAdminUser(form)
+	err = i.createAdminUser(form)
 	if err != nil {
 		return json.CommonFailure("创建管理员账号失败", err)
 	}
@@ -98,7 +77,7 @@ func Store(ctx *macaron.Context, form InstallForm) string {
 }
 
 // 配置写入文件
-func writeConfig(form InstallForm) error {
+func (i *Install) writeConfig(form dto.InstallForm) error {
 	dbConfig := []string{
 		"db.engine", form.DbType,
 		"db.host", form.DbHost,
@@ -126,7 +105,7 @@ func writeConfig(form InstallForm) error {
 }
 
 // 创建管理员账号
-func createAdminUser(form InstallForm) error {
+func (i *Install) createAdminUser(form dto.InstallForm) error {
 	user := new(models.User)
 	user.Name = form.AdminUsername
 	user.Password = form.AdminPassword
@@ -138,7 +117,7 @@ func createAdminUser(form InstallForm) error {
 }
 
 // 测试数据库连接
-func testDbConnection(form InstallForm) error {
+func (i *Install) testDbConnection(form dto.InstallForm) error {
 	var s setting.Setting
 	s.Db.Engine = form.DbType
 	s.Db.Host = form.DbHost
@@ -151,10 +130,16 @@ func testDbConnection(form InstallForm) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func(db *xorm.Engine) {
+		err := db.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(db)
 	err = db.Ping()
 	if s.Db.Engine == "postgres" && err != nil {
-		pgError, ok := err.(*pq.Error)
+		var pgError *pq.Error
+		ok := errors.As(err, &pgError)
 		if ok && pgError.Code == "3D000" {
 			err = errors.New("数据库不存在")
 		}
@@ -162,7 +147,8 @@ func testDbConnection(form InstallForm) error {
 	}
 
 	if s.Db.Engine == "mysql" && err != nil {
-		mysqlError, ok := err.(*mysql.MySQLError)
+		var mysqlError *mysql.MySQLError
+		ok := errors.As(err, &mysqlError)
 		if ok && mysqlError.Number == 1049 {
 			err = errors.New("数据库不存在")
 		}
